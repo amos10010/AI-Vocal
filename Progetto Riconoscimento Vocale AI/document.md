@@ -67,7 +67,7 @@ a_BT = audio_BT[diff:]
 
 After we cut some music there was at the beginning of both videos and we get two array that were made up of 15 and 16 minutes.
 
-Here's the plot of the audios.
+Here's the plot of a portion of the audios.
 
 ![A slice of the audios](plots/FilesAudio1.jpeg)
 
@@ -129,7 +129,7 @@ Below we reshaped the arrays into matrices ``batch_size * row``, we'll define wh
 batch_a = batch_a_final.reshape(-1, batch_size, order="C")
 batch_b = batch_b_final.reshape(-1, batch_size, order="C")
 ```
-Here's we initialized two array composed by zeros, and done a ``for`` that filled our matrices' row with useful data by call the function ``reduce_batch()``.
+Here's we initialized two array composed by zeros, and did a ``for`` that filled our matrices' row with useful data by call the function ``reduce_batch()``.
 ```python
 batch_a_f = np.zeros([len_batch_a, frequence])
 for i in range(len_batch_a):
@@ -160,3 +160,77 @@ For some graphical issues we weren't able to plot labels for axis, but I explain
 In spectrograms on axis Y there are all the frequencies, on axis X there is the time, and more lighter color become, more intense is the frequency.
 
 On batches plots on axis Y there's the mean of the frequencies of spectrogram, and on axis X, which frequency they refer to.
+
+---
+# Machine Learning Model
+All those instructions were did to return a X and an y for the SVM, or *Support Vector Machine*. But what's a SVM?
+
+## SVM
+
+__*Support Vector Machines*__ are supervised learning models used for classification and regression purpose. Given a dataset divided into two classes, or more, it assign new example to one or other category. All these examples and datasets are represented as points in a space, after it makes to divide as possible as it can, these points. This space is divide by a plane, 2 dimension or more dimension, and the nearest points are called __*Support Vector*__. Those points depends on dataset and if they're moved or deleted, the plane changes. 
+
+![SVM 2D and 3D](plots/SVM.png)
+
+Doing like this is possible to clarify if a new example is belonging to a category instead of an other.
+
+---
+
+# Train & Test, Hyperparameters
+
+First we tried to apply the classic train and test method from SciKit-Learn, but it returned not very high score, so we tried with cross validation.
+
+Before explain what's cross validation, I think is could be useful to understand what's
+the "classic" train and test.
+
+The "classic" method consist of dataset splitting in two areas: train and test area.
+Train area is obviously bigger than test beacuse the Machine Learning model needs to train on dataset, and the score is bigger also due the quantity of data. Test is a small a part of the dataset and return a score more real-like.
+
+![Train and test](plots/test&train.png)
+
+Here we are, now what's cross validation? Cross validation is very similar to "classic" method. It split the dataset more times, and change the position of test and train. The function, from sklearn, return a dictionary that contain the mean of test and train's score.
+
+![Cross validation](plots/crossvalidation.png)
+
+After that we found what we thought it could be the maximum result, then we tried to modify some *hyperparameters*, *silence thresholds* and *frequency thresholds*. We tried with a matrix that combined all the hyperparameters of SVM and another matrix that combined the thresholds.
+
+We did this with two functions. __Spoiler alert__ : the second fucntion were useless because we have modified these parameters by eye looking at the plots.
+
+In this function we pass X and y from the audios, after we have defined the lapse of C and gamma in logaritm way, and a list where we have saved the results.
+
+```python
+def train_c (X, y):
+  
+    scores = [[] for x in range(5)]
+    lapse_c = np.logspace(4, 8, 5)
+    lapse_g = np.logspace(-5, 1, 5)
+```
+
+Next we did ``for`` loop and we combined C and gamma and we saved the scores, to check at what point of the loop we were, we call a progress bar function from Andrea Amico's website.
+
+```python
+    for ic, c in enumerate(lapse_c):
+        for ig, g in enumerate(lapse_g):
+            svc_temp = SVC(C=c, gamma=g)
+            scores[ig].append(cross_validate(svc_temp, X, y, cv=5, return_train_score = True))
+        progress_bar(ic*len(lapse_g)+ig, len(lapse_c)*len(lapse_g))
+```
+
+At end we returned the lists that contained both lapse and the score.
+
+```python
+    return scores, lapse_c, lapse_g
+```
+---
+# Results
+
+After all we had to understand how big a batch had to be, so we do a function called ``graph`` that throught a ``for`` and some slices returned to us this plot:
+
+![Results](plots/Accuracy_batches.png)
+
+``Accuracy on train : 98% +/- 0.1%``
+
+``Accuracy on test : 89% +/- 1%``
+
+We can undestand that more batch there are more accurate is the model.
+
+__This project was made by Staropoli Amos and Bartolini Lorenzo from ISIS Gobetti-Volta in Bagno a Ripoli (Florence).__

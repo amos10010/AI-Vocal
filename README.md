@@ -71,7 +71,7 @@ Here's the plot of a portion of the audios.
 
 ![A slice of the audios](plots/FilesAudio1.jpeg)
 
-We also needed to fit and transform audios to have a resonabe and real score from the SVC. We use reshape because we were working on an array.
+We also needed to fit and transform audios to have a resonable and real score from the SVC. We use reshape because we were working on an array.
 ```python
 a_8020 = scaler.fit_transform(a_8020.reshape(-1, 1)).flatten()
 a_BT = scaler.fit_transform(a_BT.reshape(-1, 1)).flatten()
